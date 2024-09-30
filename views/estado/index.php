@@ -25,7 +25,7 @@ $gridColumns = [
             return GridView::ROW_COLLAPSED;
         },
         'detail' => function ($model) {
-            return Yii::$app->controller->renderPartial('/contato\ver-contatos', ['estado' => $model]);
+            return Yii::$app->controller->renderPartial('/contato/ver-contatos', ['estado' => $model]);
         },
         'headerOptions' => ['class' => 'kartik-sheet-style'],
         'expandOneOnly' => true,
