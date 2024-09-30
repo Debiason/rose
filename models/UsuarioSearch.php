@@ -4,12 +4,12 @@ namespace app\models;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\Estado;
+use app\models\Usuario;
 
 /**
- * EstadoSearch represents the model behind the search form of `app\models\Estado`.
+ * UsuarioSearch represents the model behind the search form of `app\models\Usuario`.
  */
-class EstadoSearch extends Estado
+class UsuarioSearch extends Usuario
 {
     /**
      * {@inheritdoc}
@@ -18,7 +18,7 @@ class EstadoSearch extends Estado
     {
         return [
             [['id'], 'integer'],
-            [['nome_estado', 'sigla_estado'], 'safe'],
+            [['nome', 'email', 'senha'], 'safe'],
         ];
     }
 
@@ -40,13 +40,12 @@ class EstadoSearch extends Estado
      */
     public function search($params)
     {
-        $query = Estado::find()->orderBy('nome_estado');
+        $query = Usuario::find();
 
         // add conditions that should always apply here
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => false,
         ]);
 
         $this->load($params);
@@ -62,8 +61,9 @@ class EstadoSearch extends Estado
             'id' => $this->id,
         ]);
 
-        $query->andFilterWhere(['like', 'nome_estado', $this->nome_estado])
-            ->andFilterWhere(['like', 'sigla_estado', $this->sigla_estado]);
+        $query->andFilterWhere(['like', 'nome', $this->nome])
+            ->andFilterWhere(['like', 'email', $this->email])
+            ->andFilterWhere(['like', 'senha', $this->senha]);
 
         return $dataProvider;
     }

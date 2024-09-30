@@ -1,22 +1,21 @@
 <?php
+use kartik\grid\GridView;
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\InscricaoSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Contatos';
-$this->params['breadcrumbs'][] = $this->title;
+
 ?>
 <div class="contato-index">
 <?php
 
-use kartik\grid\GridView;
 $gridColumns = [
     [
         'attribute' => 'nome_estado',
         'value' => 'nome_estado',
         'label' => Yii::t('app', 'Estados'),
-        'contentOptions' => ['class' => 'text-dark-75 font-weight-bolder'],
+        'contentOptions' => ['class' => 'text-dark-75 font-weight-bolder', 'id' => 'nome_estado'],
     ],
     [
         'label' => 'Ações',
@@ -41,15 +40,15 @@ $gridColumns = [
 
     <div class="card card-custom gutter-b card-stretch">
         <div class="card-header border-0 py-5">
-            <h3 class="card-title align-items-start flex-column">
+            <!-- <h3 class="card-title align-items-start flex-column">
                 <span class="card-label font-weight-bolder text-dark"><?= Yii::t('app', 'Minhas inscrições') ?></span>
-            </h3>
+            </h3> -->
         </div>
         <div class="card-body py-0">
             <div class="table-responsive">
                 <div class="inscricao-index">
                     <?= GridView::widget([
-                        //'hover' => true,
+                        'hover' => true,
                         'pager' => ['options' => ['class' => 'pagination pull-left']],
                         'dataProvider' => $dataProvider,
                         //'filterModel' => $searchModel,

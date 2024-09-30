@@ -20,8 +20,8 @@ use yii\helpers\Html;
         <?= Menu::widget([
             'items' => [
                 ['label' => 'Dashboard', 'icon' => 'dashboard', 'url' => ['/']],
-                ['label' => 'About', 'icon' => 'table_chart', 'url' => ['site/about']],
-                ['label' => 'Contact', 'icon' => 'web', 'url' => ['site/contact']],
+                ['label' => 'Login', 'icon' => 'table_chart', 'url' => ['site/login']],
+                ['label' => 'Estado', 'icon' => 'web', 'url' => ['/estado']],
                 ['label' => 'Javascript', 'icon' => 'code', 'url' => ['/javascript']],
                 ['label' => 'Notifications', 'icon' => 'notifications', 'url' => ['/notifications']],
                 ['label' => 'Tabs', 'icon' => 'tab', 'url' => ['/tabs']],

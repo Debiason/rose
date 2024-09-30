@@ -20,8 +20,13 @@ $config = [
             'class' => 'yii\caching\FileCache',
         ],
         'user' => [
-            'identityClass' => 'app\models\User',
-            'enableAutoLogin' => true,
+            'identityClass' => 'app\models\Usuario',
+            'enableAutoLogin' => false,
+            'enableSession' => true,
+            'authTimeout' => 14400,
+            'identityCookie' => [
+                'name' => '_defaultIdentity',
+            ]
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
@@ -58,6 +63,11 @@ $config = [
         
     ],
     'params' => $params,
+    'modules' => [
+        'gridview' => [
+            'class' => '\kartik\grid\Module',
+        ],
+    ],
 ];
 
 if (YII_ENV_DEV) {
