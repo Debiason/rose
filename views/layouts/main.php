@@ -1,291 +1,400 @@
 <?php
-use yii\helpers\Html;
-use deyraka\materialdashboard\web\MaterialDashboardAsset;
-use yii\web\View;
 
-/* @var $this View */
+/* @var $this \yii\web\View */
 /* @var $content string */
 
-if (class_exists('deyraka\materialdashboard\web\MaterialDashboardAsset')) {
-    deyraka\materialdashboard\web\MaterialDashboardAsset::register($this);
-};
+use app\widgets\Alert;
+use yii\helpers\Html;
+use yii\helpers\Url;
+use \app\models\Pessoa;
+use yii\bootstrap\Modal;
 
-$directoryAsset = Yii::$app->assetManager->getPublishedUrl('@vendor/deyraka/yii2-material-dashboard/assets/');
+// if ( Yii::$app->user->isGuest )
+//     return Yii::$app->getResponse()->redirect(['/']);
+
+// $usuarioLogado = \app\models\Usuario::usuarioLogado();
+// $notificacoes = \app\models\Notificacao::find()->where(['destinatario_id' => Yii::$app->user->id])->andWhere(['lido' => 0])->orderBy('id DESC')
+    // ->createCommand()->queryAll();
+
+$this->registerJsFile('@web/js/components/croppiejs/croppie.min.js',['depends' => [\yii\web\JqueryAsset::className()]]);
+$this->registerCssFile("@web/js/components/croppiejs/croppie.min.css", ['depends' => [\yii\bootstrap\BootstrapAsset::className()]]);
+
+
+/**
+ * Testar na resolução 1366x768 para ver se
+ * o conteúdo não fica apertado.
+ * 
+ * 47% dos usuários usam 1366x768
+ * 53% dos usuários usam 1920x1080
+ * 
+ * @var boolean $layout_fluid
+ */
+$layout_fluid = false;
+if(isset($this->params['layout_fluid'])) {
+    $layout_fluid = (boolean) $this->params['layout_fluid'];
+}
 
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
 <html lang="<?= Yii::$app->language ?>">
-    <head>
-        <meta charset="<?= Yii::$app->charset ?>">
-        <!-- <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no" name="viewport"/> -->
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/> 
+<!-- begin::Head -->
+<head>
+    <meta charset="utf-8"/>
+    <title>Agrega | <?= Html::encode($this->title) ?></title>
+    <meta charset="<?= Yii::$app->charset ?>">
+    <meta name="description" content="Latest updates and statistic charts">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!--begin::Web font -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+    <script>
+        WebFont.load({
+            google: {"families": ["Poppins:300,400,500,600,700", "Roboto:300,400,500,600,700"]},
+            active: function () {
+                sessionStorage.fonts = true;
+            }
+        });
+    </script>
+    <!--end::Web font -->
+    <link rel="shortcut icon" href="/favicon.ico"/>
+    <?php $this->head() ?>
+    <?= Html::csrfMetaTags() ?>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body class="<?=$layout_fluid ? 'm-page--fluid' : 'm-page--wide'?> m-header--fixed m-header--fixed-mobile m-footer--push m-aside--offcanvas-default">
 
-        <link rel="stylesheet" type="text/css"
-              href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700&display=swap"/>
-        <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
-        <!-- FOR CHART -->
-        <link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
-        <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+<div id="spinner-back"></div>
+<div id="spinner-front">
+    <div class="spinner-grow" style="width: 3rem; height: 3rem;" role="status">
+        <span class="sr-only">Carregando...</span>
+    </div>
+    Carregando...
+</div>
+<!-- begin:: Page -->
+<div class="m-grid m-grid--hor m-grid--root m-page">
+    <!-- begin::Header -->
+    <header id="m_header" class="m-grid__item		m-header " m-minimize="minimize" m-minimize-offset="200"
+            m-minimize-mobile-offset="200">
+        <div class="m-header__top">
+            <div class="m-container <?=$layout_fluid ? 'm-container--fluid' : 'm-container--responsive m-container--xxl'?> m-container--full-height m-page__container">
+                <div class="m-stack m-stack--ver m-stack--desktop">
 
-        <?php $this->registerCsrfMetaTags() ?>
-        <title><?= Html::encode($this->title) ?></title>
-        <?php $this->head() ?>
-    </head>
-    <body>
-    <?php $this->beginBody() ?>
-        <div class="wrapper">
-            <?= $this->render('left', ['directoryAsset' => $directoryAsset]) ?>
-            <div class="main-panel">
-                <?= $this->render('header', ['directoryAsset' => $directoryAsset,'title' => $this->title]) ?>
-                <?= $this->render('content', ['directoryAsset' => $directoryAsset,'content' => $content]) ?>
-                <?= $this->render('footer') ?>
-            </div>
-        </div>
-        <div class="fixed-plugin">
-            <div class="dropdown show-dropdown">
-            <a href="#" data-toggle="dropdown">
-                <i class="fa fa-cog fa-2x"> </i>
-            </a>
-            <ul class="dropdown-menu">
-                <li class="header-title"> Sidebar Filters</li>
-                <li class="adjustments-line">
-                <a href="javascript:void(0)" class="switch-trigger active-color">
-                    <div class="badge-colors ml-auto mr-auto">
-                    <span class="badge filter badge-purple active" data-color="purple"></span>
-                    <span class="badge filter badge-azure" data-color="azure"></span>
-                    <span class="badge filter badge-green" data-color="green"></span>
-                    <span class="badge filter badge-warning" data-color="orange"></span>
-                    <span class="badge filter badge-danger" data-color="danger"></span>
-                    <span class="badge filter badge-rose" data-color="rose"></span>
+                    <!-- begin::Brand -->
+                    <div class="m-stack__item m-brand">
+                        <div class="m-stack m-stack--ver m-stack--general m-stack--inline">
+                            <div class="m-stack__item m-stack__item--middle m-brand__logo">
+                                <a href="/" class="m-brand__logo-wrapper">
+                                    <img alt="" src="/img/logo-agrega.png"/>
+                                </a>
+                            </div>
+
+
+                            <!-- begin::Menu Administracao-->
+                            <div class="m-stack__item m-stack__item--middle m-brand__tools">
+                                <div class="m-dropdown m-dropdown--inline m-dropdown--arrow m-dropdown--align-left m-dropdown--align-push"
+                                     m-dropdown-toggle="click" aria-expanded="true">
+                                    <!-- <?php if (!Yii::$app->user->isGuest && (Yii::$app->user->can('permissoes/perfil') || Yii::$app->user->can('permissoes/permissao'))): ?> -->
+                                        <a href="#"
+                                           class="dropdown-toggle m-dropdown__toggle btn btn-outline-primary m-btn  m-btn--icon m-btn--pill">
+                                            <span>Administração</span>
+                                        </a>
+                                        <div class="m-dropdown__wrapper">
+                                            <span class="m-dropdown__arrow m-dropdown__arrow--left m-dropdown__arrow--adjust"></span>
+                                            <div class="m-dropdown__inner">
+                                                <div class="m-dropdown__body">
+                                                    <div class="m-dropdown__content">
+                                                        <ul class="m-nav">
+
+                                                            <li class="m-nav__item">
+                                                                <a href="<?= Url::to(['permissoes/perfil']) ?>"
+                                                                   class="m-nav__link">
+                                                                    <i class="m-nav__link-icon flaticon-user-settings"></i>
+                                                                    <span class="m-nav__link-text">Perfil</span>
+                                                                </a>
+                                                            </li>
+                                                            <li class="m-nav__item">
+                                                                <a href="<?= Url::to(['permissoes/permissoes']) ?>"
+                                                                   class="m-nav__link">
+                                                                    <i class="m-nav__link-icon flaticon-user-ok"></i>
+                                                                    <span class="m-nav__link-text">Permissões</span>
+                                                                </a>
+                                                            </li>
+                                                            <li class="m-nav__item">
+                                                                <a href="<?= Url::to(['permissoes/limpar-cache']) ?>"
+                                                                   class="m-nav__link">
+                                                                    <i class="m-nav__link-icon flaticon-refresh"></i>
+                                                                    <span class="m-nav__link-text">Limpar cache</span>
+                                                                </a>
+                                                            </li>
+                                                            <li class="m-nav__item mt-2">
+                                                                <a href="<?= Url::to(['/log']) ?>"
+                                                                   class="m-nav__link">
+                                                                    <i class="m-nav__link-icon fas fa-bug"></i>
+                                                                    <span class="m-nav__link-text">Logs de erros</span>
+                                                                </a>
+                                                            </li>
+                                                            <li class="m-nav__separator m-nav__separator--fit">
+                                                            </li>
+                                                            <li class="m-nav__item">
+                                                                <a href="<?= Url::to(['/usuario']) ?>"
+                                                                   class="m-nav__link">
+                                                                    <i class="m-nav__link-icon flaticon-users"></i>
+                                                                    <span class="m-nav__link-text">Usuários</span>
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <!-- <?php endif; ?> -->
+                                </div>
+
+                                <!-- end::Menu Administrador -->
+
+                                <!-- begin::Responsive Header Menu Toggler-->
+                                <a id="m_aside_header_menu_mobile_toggle" href="javascript:;"
+                                   class="m-brand__icon m-brand__toggler m--visible-tablet-and-mobile-inline-block">
+                                    <span></span>
+                                </a>
+
+                                <!-- end::Responsive Header Menu Toggler-->
+
+                                <!-- begin::Topbar Toggler-->
+                                <a id="m_aside_header_topbar_mobile_toggle" href="javascript:;"
+                                   class="m-brand__icon m--visible-tablet-and-mobile-inline-block">
+                                    <i class="flaticon-more"></i>
+                                </a>
+
+                                <!--end::Topbar Toggler-->
+                            </div>
+                        </div>
                     </div>
-                    <div class="clearfix"></div>
-                </a>
-                </li>
-                <li class="header-title">Images</li>
-                <li class="active">
-                <a class="img-holder switch-trigger" href="javascript:void(0)">
-                    <img src="<?= $directoryAsset; ?>/img/sidebar-1.jpg" alt="">
-                </a>
-                </li>
-                <li>
-                <a class="img-holder switch-trigger" href="javascript:void(0)">
-                    <img src="<?= $directoryAsset; ?>/img/sidebar-2.jpg" alt="">
-                </a>
-                </li>
-                <li>
-                <a class="img-holder switch-trigger" href="javascript:void(0)">
-                    <img src="<?= $directoryAsset; ?>/img/sidebar-3.jpg" alt="">
-                </a>
-                </li>
-                <li>
-                <a class="img-holder switch-trigger" href="javascript:void(0)">
-                    <img src="<?= $directoryAsset; ?>/img/sidebar-4.jpg" alt="">
-                </a>
-                </li>
-                <li class="button-container">
-                <a href="https://www.creative-tim.com/product/material-dashboard" target="_blank" class="btn btn-primary btn-block">Free Download</a>
-                </li>
-                
-                <li class="button-container">
-                <a href="https://demos.creative-tim.com/material-dashboard/docs/2.1/getting-started/introduction.html" target="_blank" class="btn btn-default btn-block">
-                    View Documentation
-                </a>
-                </li>
-                <li class="button-container github-star">
-                <a class="github-button" href="https://github.com/creativetimofficial/material-dashboard" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star ntkme/github-buttons on GitHub">Star</a>
-                </li>
-                <li class="header-title">Thank you for 95 shares!</li>
-                <li class="button-container text-center">
-                <button id="twitter" class="btn btn-round btn-twitter"><i class="fa fa-twitter"></i> &middot; 45</button>
-                <button id="facebook" class="btn btn-round btn-facebook"><i class="fa fa-facebook-f"></i> &middot; 50</button>
-                <br>
-                <br>
-                </li>
-            </ul>
+
+                    <!-- end::Brand -->
+
+                    <!-- begin::Topbar -->
+                    <div class="m-stack__item m-stack__item--fluid m-header-head" id="m_header_nav">
+                        <div id="m_header_topbar" class="m-topbar  m-stack m-stack--ver m-stack--general">
+                        
+                        </div>
+                    </div>
+
+                    <!-- end::Topbar -->
+                </div>
             </div>
         </div>
-        
-        <script>
-            $(document).ready(function() {
-            $().ready(function() {
-                $sidebar = $('.sidebar');
+        <div class="m-header__bottom">
+            <div class="m-container <?=$layout_fluid ? 'm-container--fluid' : 'm-container--responsive m-container--xxl'?> m-container--full-height m-page__container">
+                <div class="m-stack m-stack--ver m-stack--desktop">
 
-                $sidebar_img_container = $sidebar.find('.sidebar-background');
+                    <!-- begin::Horizontal Menu -->
+          
+                    <!-- end::Horizontal Menu -->
 
-                $full_page = $('.full-page');
+                    <!--begin::Search-->
+                    <div class="m-stack__item m-stack__item--middle m-dropdown m-dropdown--arrow m-dropdown--large m-dropdown--mobile-full-width m-dropdown--align-right m-dropdown--skin-light m-header-search m-header-search--expandable m-header-search--skin-"
+                         id="m_quicksearch"
+                         m-quicksearch-mode="default">
 
-                $sidebar_responsive = $('body > .navbar-collapse');
+                        <!--begin::Search Form -->
+                        <form class="m-header-search__form" action="/site/search">
+                            <div class="m-header-search__wrapper">
+                                <span class="m-header-search__icon-search" id="m_quicksearch_search">
+                                    <i class="la la-search"></i>
+                                </span>
+                                <span class="m-header-search__input-wrapper">
+                                    <input autocomplete="off" type="text" name="q" class="m-header-search__input"
+                                           value="" placeholder="Busca..." id="m_quicksearch_input">
+                                </span>
+                                <span class="m-header-search__icon-close" id="m_quicksearch_close">
+                                    <i class="la la-remove"></i>
+                                </span>
+                                <span class="m-header-search__icon-cancel" id="m_quicksearch_cancel">
+                                    <i class="la la-remove"></i>
+                                </span>
+                            </div>
+                        </form>
 
-                window_width = $(window).width();
+                        <!--end::Search Form -->
 
-                fixed_plugin_open = $('.sidebar .sidebar-wrapper .nav li.active a p').html();
+                        <!--begin::Search Results -->
+                        <div class="m-dropdown__wrapper">
+                            <div class="m-dropdown__arrow m-dropdown__arrow--center"></div>
+                            <div class="m-dropdown__inner">
+                                <div class="m-dropdown__body">
+                                    <div class="m-dropdown__scrollable m-scrollable" data-scrollable="true"
+                                         data-height="auto" data-mobile-height="auto" style="max-height: 250px">
+                                        <div class="m-dropdown__content m-list-search m-list-search--skin-light">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                if (window_width > 767 && fixed_plugin_open == 'Dashboard') {
-                if ($('.fixed-plugin .dropdown').hasClass('show-dropdown')) {
-                    $('.fixed-plugin .dropdown').addClass('open');
-                }
+                        <!--end::Search Results -->
+                    </div>
 
-                }
+                    <!--end::Search-->
+                </div>
+            </div>
+        </div>
+    </header>
 
-                $('.fixed-plugin a').click(function(event) {
-                // Alex if we click on switch, stop propagation of the event, so the dropdown will not be hide, otherwise we set the  section active
-                if ($(this).hasClass('switch-trigger')) {
-                    if (event.stopPropagation) {
-                    event.stopPropagation();
-                    } else if (window.event) {
-                    window.event.cancelBubble = true;
-                    }
-                }
-                });
+    <!-- end::Header -->
+    <!-- begin::Body -->
+    <div class="m-grid__item m-grid__item--fluid m-grid m-grid--hor-desktop m-grid--desktop m-body">
+        <div class="m-grid__item m-grid__item--fluid  m-grid m-grid--ver m-container <?=$layout_fluid ? 'm-container--fluid' : 'm-container--responsive m-container--xxl'?> m-page__container">
+            <div class="m-grid__item m-grid__item--fluid m-wrapper">
+                <!-- BEGIN: Subheader -->
+                <?php if ($this->title == 'Painel') { ?>
+                    <div class="m-subheader ">
+                        <div class="d-flex align-items-center">
+                            <div class="mr-auto">
+                                <h3 class="m-subheader__title ">
+                                    <?= Html::encode($this->title) ?>
+                                </h3>
+                            </div>
+                            <div>
+                                <!--<span class="m-subheader__daterange" id="m_dashboard_daterangepicker">
+                                    <span class="m-subheader__daterange-label">
+                                        <span class="m-subheader__daterange-title"></span>
+                                        <span class="m-subheader__daterange-date m--font-brand"></span>
+                                    </span>
+                                    <a href="#" class="btn btn-sm btn-brand m-btn m-btn--icon m-btn--icon-only m-btn--custom m-btn--pill">
+                                        <i class="la la-angle-down"></i>
+                                    </a>
+                                </span>-->
+                            </div>
+                        </div>
+                    </div>
+                <?php } else { ?>
+                    <!-- BEGIN: Subheader -->
+                    <div class="m-subheader ">
+                        <div class="d-flex align-items-center">
+                            <div class="mr-auto">
+                                <h3 class="m-subheader__title m-subheader__title--separator"><?= Html::encode($this->title) ?></h3>
+                                <?php if (isset($this->params['breadcrumbs'])) { ?>
+                           
+                                <?php } ?>
+                            </div>
+                   
+                        </div>
+                    </div>
+                <?php } ?>
+                <!-- END: Subheader -->
+                <div class="m-content">
+                    <?= $content ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- end::Body -->
+    <!-- begin::Footer -->
+    <footer class="m-grid__item m-footer d-print-none">
+        <div class="m-container <?=$layout_fluid ? 'm-container--fluid' : ''?> m-container--responsive m-container--xxl m-container--full-height m-page__container">
+            <div class="m-footer__wrapper">
+                <div class="m-stack m-stack--flex-tablet-and-mobile m-stack--ver m-stack--desktop">
+                    <div class="m-stack__item m-stack__item--left m-stack__item--middle m-stack__item--last">
+								<span class="m-footer__copyright">
+									<?=date('Y')?> &copy; Agrega
+									<a href="https://www.funarbe.org.br" class="m-link" target="_blank">
+										Fundação Arthur Bernardes
+									</a>
+								</span>
+                    </div>
+                    <div class="m-stack__item m-stack__item--right m-stack__item--middle m-stack__item--first">
+                        <ul class="m-footer__nav m-nav m-nav--inline m--pull-right">
+                            <li class="m-nav__item">
+                                <a href="/confluence" class="m-nav__link">
+                                    <span class="m-nav__link-text">
+                                        Novidades
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="m-nav__item">
+                                <a href="/site/about" class="m-nav__link">
+                                    <span class="m-nav__link-text">
+                                        Sobre o Agrega
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="m-nav__item m-nav__item--last">
+                                <a href="/support-center" class="m-nav__link" data-toggle="m-tooltip"
+                                   title="Central de Ajuda" data-placement="left">
+                                    <i class="m-nav__link-icon flaticon-info m--icon-font-size-lg3"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- end::Footer -->
+</div>
+<!-- end:: Page -->
+<!-- begin::Scroll Top -->
+<div class="m-scroll-top m-scroll-top--skin-top" data-toggle="m-scroll-top" data-scroll-offset="500"
+     data-scroll-speed="300">
+    <i class="la la-arrow-up"></i>
+</div>
+<!-- end::Scroll Top -->
+<!-- bengin::modal upload image avatar -->
+<div id="uploadimageModal" class="modal" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Alterar foto</h4>
+                <button type="button" class="close" data-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
 
-                $('.fixed-plugin .active-color span').click(function() {
-                $full_page_background = $('.full-page-background');
+                        <div id="image_demo"></div>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success crop_image">Cortar e atualizar</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end::modal upload image avatar -->
 
-                $(this).siblings().removeClass('active');
-                $(this).addClass('active');
+?>
+<?php if(YII_ENV_PROD){ ?>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-48399105-7"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
 
-                var new_color = $(this).data('color');
+        gtag('config', 'UA-48399105-7');
+    </script>
 
-                if ($sidebar.length != 0) {
-                    $sidebar.attr('data-color', new_color);
-                }
+    <!-- Hotjar Tracking Code for https://agrega.funarbe.org.br -->
+    <script>
+        (function(h,o,t,j,a,r){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:3337971,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+        })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+    </script>
+<?php } ?>
 
-                if ($full_page.length != 0) {
-                    $full_page.attr('filter-color', new_color);
-                }
-
-                if ($sidebar_responsive.length != 0) {
-                    $sidebar_responsive.attr('data-color', new_color);
-                }
-                });
-
-                $('.fixed-plugin .background-color .badge').click(function() {
-                $(this).siblings().removeClass('active');
-                $(this).addClass('active');
-
-                var new_color = $(this).data('background-color');
-
-                if ($sidebar.length != 0) {
-                    $sidebar.attr('data-background-color', new_color);
-                }
-                });
-
-                $('.fixed-plugin .img-holder').click(function() {
-                $full_page_background = $('.full-page-background');
-
-                $(this).parent('li').siblings().removeClass('active');
-                $(this).parent('li').addClass('active');
-
-
-                var new_image = $(this).find("img").attr('src');
-
-                if ($sidebar_img_container.length != 0 && $('.switch-sidebar-image input:checked').length != 0) {
-                    $sidebar_img_container.fadeOut('fast', function() {
-                    $sidebar_img_container.css('background-image', 'url("' + new_image + '")');
-                    $sidebar_img_container.fadeIn('fast');
-                    });
-                }
-
-                if ($full_page_background.length != 0 && $('.switch-sidebar-image input:checked').length != 0) {
-                    var new_image_full_page = $('.fixed-plugin li.active .img-holder').find('img').data('src');
-
-                    $full_page_background.fadeOut('fast', function() {
-                    $full_page_background.css('background-image', 'url("' + new_image_full_page + '")');
-                    $full_page_background.fadeIn('fast');
-                    });
-                }
-
-                if ($('.switch-sidebar-image input:checked').length == 0) {
-                    var new_image = $('.fixed-plugin li.active .img-holder').find("img").attr('src');
-                    var new_image_full_page = $('.fixed-plugin li.active .img-holder').find('img').data('src');
-
-                    $sidebar_img_container.css('background-image', 'url("' + new_image + '")');
-                    $full_page_background.css('background-image', 'url("' + new_image_full_page + '")');
-                }
-
-                if ($sidebar_responsive.length != 0) {
-                    $sidebar_responsive.css('background-image', 'url("' + new_image + '")');
-                }
-                });
-
-                $('.switch-sidebar-image input').change(function() {
-                $full_page_background = $('.full-page-background');
-
-                $input = $(this);
-
-                if ($input.is(':checked')) {
-                    if ($sidebar_img_container.length != 0) {
-                    $sidebar_img_container.fadeIn('fast');
-                    $sidebar.attr('data-image', '#');
-                    }
-
-                    if ($full_page_background.length != 0) {
-                    $full_page_background.fadeIn('fast');
-                    $full_page.attr('data-image', '#');
-                    }
-
-                    background_image = true;
-                } else {
-                    if ($sidebar_img_container.length != 0) {
-                    $sidebar.removeAttr('data-image');
-                    $sidebar_img_container.fadeOut('fast');
-                    }
-
-                    if ($full_page_background.length != 0) {
-                    $full_page.removeAttr('data-image', '#');
-                    $full_page_background.fadeOut('fast');
-                    }
-
-                    background_image = false;
-                }
-                });
-
-                $('.switch-sidebar-mini input').change(function() {
-                $body = $('body');
-
-                $input = $(this);
-
-                if (md.misc.sidebar_mini_active == true) {
-                    $('body').removeClass('sidebar-mini');
-                    md.misc.sidebar_mini_active = false;
-
-                    $('.sidebar .sidebar-wrapper, .main-panel').perfectScrollbar();
-
-                } else {
-
-                    $('.sidebar .sidebar-wrapper, .main-panel').perfectScrollbar('destroy');
-
-                    setTimeout(function() {
-                    $('body').addClass('sidebar-mini');
-
-                    md.misc.sidebar_mini_active = true;
-                    }, 300);
-                }
-
-                // we simulate the window Resize so the charts will get updated in realtime.
-                var simulateWindowResize = setInterval(function() {
-                    window.dispatchEvent(new Event('resize'));
-                }, 180);
-
-                // we stop the simulation of Window Resize after the animations are completed
-                setTimeout(function() {
-                    clearInterval(simulateWindowResize);
-                }, 1000);
-
-                });
-            });
-            });
-        </script>
-        <script>
-            $(document).ready(function() {
-            // Javascript method's body can be found in assets/js/demos.js
-            md.initDashboardPageCharts();
-
-            });
-        </script>
-    <?php $this->endBody() ?>
-    </body>
+<?php $this->endBody() ?>
+</body>
+<!-- end::Body -->
 </html>
 <?php $this->endPage() ?>
