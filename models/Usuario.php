@@ -2,6 +2,10 @@
 
 namespace app\models;
 
+use yii\db\ActiveRecord;
+use yii\web\IdentityInterface;
+use yii\helpers\ArrayHelper;
+use kartik\password\StrengthValidator;
 use Yii;
 
 /**
@@ -12,8 +16,10 @@ use Yii;
  * @property string $email
  * @property string $senha
  */
-class Usuario extends \yii\db\ActiveRecord
+class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
+    public $authKey;
+    public $nomeCurto;
     /**
      * {@inheritdoc}
      */
@@ -28,8 +34,8 @@ class Usuario extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['nome', 'email', 'senha'], 'required'],
-            [['nome', 'email', 'senha'], 'string', 'max' => 300],
+            [['nome', 'username', 'email', 'senha'], 'required'],
+            [['nome', 'username', 'email', 'senha'], 'string', 'max' => 300],
         ];
     }
 
@@ -41,18 +47,80 @@ class Usuario extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'nome' => 'Nome',
+            'username' => 'Usuário',
             'email' => 'Email',
             'senha' => 'Senha',
         ];
     }
 
-    public static function findBynome($nome)
+    public static function findIdentity($id)
     {
-        return Usuario::findOne(['nome'=>$nome]);
+        return static::findOne($id);
     }
 
-    public static function validatesenha($senha)
+    // public static function findIdentity($id)
+    // {
+    //     return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+    // }
+
+    // public static function findIdentityByAccessToken($token, $type = null)
+    // {
+    //     foreach (self::$users as $user) {
+    //         if ($user['accessToken'] === $token) {
+    //             return new static($user);
+    //         }
+    //     }
+
+    //     return null;
+    // }
+
+    public function getId()
     {
-        return Usuario::findOne(['senha'=>$senha]);
+        return $this->id; // Retorne a chave primária do usuário
+    }
+
+    public function getAuthKey()
+    {
+        return $this->authKey;
+    }
+
+    public function validateAuthKey($authKey)
+    {
+        return $this->authKey == $authKey;
+    }
+
+    public static function usuarioLogado()
+    {
+        $user = \Yii::$app->user->identity;
+
+        if($user) {
+            $auth = \Yii::$app->authManager;
+            $temp = explode(" ", $user['nome']);
+            $user['nomeCurto'] = $temp[0] . " " . $temp[count($temp) - 1];
+        }
+
+        return $user;
+    }
+
+    public function validateSenha($senha)
+    {
+        return $this->senha === sha1(md5($senha));
+    }
+
+    public static function findIdentityByAccessToken($token, $type = null)
+    {
+        return static::findOne(['access_token' => $token]);
+    }
+
+    public static function findByUsername($login)
+    {
+        $user = Usuario::find()->where(['username' => $login])->one();
+
+        if($user)
+        {
+            return new static($user);
+        }
+
+        return null;
     }
 }

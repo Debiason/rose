@@ -13,8 +13,8 @@ use yii\base\Model;
  */
 class LoginForm extends Model
 {
-    public $username;
-    public $password;
+    public $email;
+    public $senha;
     public $rememberMe = true;
 
     private $_user = false;
@@ -26,20 +26,20 @@ class LoginForm extends Model
     public function rules()
     {
         return [
-            // username and password are both required
-            [['username', 'password'], 'required'],
-            // rememberMe must be a boolean value
-            ['rememberMe', 'boolean'],
+             // username and password are both required
+             [['email', 'senha'], 'required'],
             // password is validated by validatePassword()
-            ['password', 'validatePassword'],
+             [['senha'], 'validatePassword'],
         ];
     }
 
     public function attributeLabels()
     {
         return [
-            'username' => 'Nome',
-            'password' => 'Senha',
+            'senha' => 'Senha',
+            'rememberMe' => 'Lembra minha senha',
+            'email' => 'Email',
+
         ];
     }
 
@@ -54,9 +54,8 @@ class LoginForm extends Model
     {
         if (!$this->hasErrors()) {
             $user = $this->getUser();
-
-            if (!$user || !$user->validatesenha($this->password)) {
-                $this->addError($attribute, 'Nome ou senha incorreto.');
+            if (!$user || !$user->validateSenha($this->senha)) {
+                $this->addError($attribute, 'Nome ou senha incorretos.');
             }
         }
     }
@@ -68,7 +67,7 @@ class LoginForm extends Model
     public function login()
     {
         if ($this->validate()) {
-            return true;//Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600*24*30 : 0);
+            return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600*24*30 : 0);
         }
         return false;
     }
@@ -81,7 +80,7 @@ class LoginForm extends Model
     public function getUser()
     {
         if ($this->_user === false) {
-            $this->_user = Usuario::findBynome($this->username);
+            $this->_user = Usuario::findByUsername($this->email);
         }
 
         return $this->_user;
